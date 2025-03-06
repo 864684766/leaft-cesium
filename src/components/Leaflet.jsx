@@ -1,5 +1,6 @@
 import { defineComponent, onMounted, ref } from "vue";
 import L from "leaflet";
+import "leaflet-geometryutil";
 
 import "leaflet/dist/leaflet.css";
 import "leaflet-draw/dist/leaflet.draw.css";
@@ -12,10 +13,14 @@ import "leaflet-draw";
 import "leaflet-fullscreen";
 
 export default defineComponent({
-  name: "MyComponent",
+  name: "LeafletMap",
   props: {
     /**
      * 地图缩放等级
+     * @description 控制地图的缩放级别，值越大显示的细节越多
+     * @type {number}
+     * @default 13
+     * @example mapLevel={15}
      */
     mapLevel: {
       type: Number,
@@ -23,7 +28,11 @@ export default defineComponent({
       default: 13,
     },
     /**
-     * 中心点
+     * 地图中心点坐标
+     * @description 设置地图初始化时的中心点位置，格式为[纬度, 经度]
+     * @type {Array<number>}
+     * @default [30.355764, 120.024029]
+     * @example centerPoint={[39.9042, 116.4074]}
      */
     centerPoint: {
       type: Array,
@@ -31,7 +40,10 @@ export default defineComponent({
       default: [30.355764, 120.024029],
     },
     /**
-     * 是否启用聚合
+     * 是否启用点位聚合
+     * @description 当地图上有大量标记点时，是否将它们聚合显示
+     * @type {boolean}
+     * @default true
      */
     enableClustering: {
       type: Boolean,
@@ -39,6 +51,9 @@ export default defineComponent({
     },
     /**
      * 聚合半径
+     * @description 点位聚合的范围半径（像素），值越大聚合范围越大
+     * @type {number}
+     * @default 80
      */
     clusterRadius: {
       type: Number,
@@ -46,6 +61,9 @@ export default defineComponent({
     },
     /**
      * 是否显示鼠标位置坐标
+     * @description 在地图上移动鼠标时，是否显示当前位置的经纬度坐标
+     * @type {boolean}
+     * @default true
      */
     showMousePosition: {
       type: Boolean,
@@ -53,6 +71,9 @@ export default defineComponent({
     },
     /**
      * 底图类型
+     * @description 选择地图底图样式，可选值：standard（标准）、satellite（卫星）、terrain（地形）、traffic（交通）
+     * @type {string}
+     * @default "standard"
      */
     baseMapType: {
       type: String,
@@ -60,6 +81,9 @@ export default defineComponent({
     },
     /**
      * 是否启用绘制工具
+     * @description 是否显示绘制工具栏，支持绘制点、线、面等要素
+     * @type {boolean}
+     * @default true
      */
     enableDraw: {
       type: Boolean,
@@ -67,6 +91,9 @@ export default defineComponent({
     },
     /**
      * 是否启用测量工具
+     * @description 是否启用距离和面积测量功能
+     * @type {boolean}
+     * @default true
      */
     enableMeasure: {
       type: Boolean,
@@ -117,7 +144,11 @@ export default defineComponent({
      * 初始化绘制工具
      */
     const initDrawTools = () => {
-      if (!props.enableDraw && !props.enableMeasure) return;
+      console.log("Initializing draw tools, enableDraw:", props.enableDraw);
+      if (!props.enableDraw && !props.enableMeasure) {
+        console.log("Draw and measure tools are disabled.");
+        return;
+      }
 
       drawnItems.value = new L.FeatureGroup();
       map.value.addLayer(drawnItems.value);
@@ -133,23 +164,66 @@ export default defineComponent({
                 },
                 showLength: true,
                 metric: true,
+                repeatMode: false,
               }
             : false,
           polygon: props.enableMeasure
             ? {
-                allowIntersection: false,
+                allowIntersection: true,
                 showArea: true,
                 showLength: true,
                 metric: true,
                 shapeOptions: {
                   color: "#f357a1",
                 },
+                repeatMode: false,
+                completeOnBlur: false,
+                finishOn: "dblclick",
+                drawError: {
+                  color: "#e1e100",
+                  message: "<strong>错误</strong> 多边形不能自相交！",
+                },
+                guidelineDistance: 20,
+                maxPoints: null, // 允许任意数量的点
+                showLength: true,
+                zIndexOffset: 2000,
               }
             : false,
-          circle: props.enableDraw,
+          circle: props.enableDraw
+            ? {
+                shapeOptions: {
+                  color: "#f357a1",
+                },
+                showRadius: true,
+                metric: true,
+                repeatMode: false,
+              }
+            : false,
           marker: props.enableDraw,
           circlemarker: false,
-          rectangle: props.enableDraw,
+          rectangle: props.enableDraw
+            ? {
+                shapeOptions: {
+                  color: "#f357a1",
+                  weight: 2,
+                  opacity: 0.7,
+                },
+                showArea: false,
+                metric: true,
+                repeatMode: false,
+                allowIntersection: false,
+                drawError: {
+                  color: "#e1e100",
+                  message: "<strong>错误</strong> 矩形不能自相交！",
+                },
+                // 添加面积计算配置
+                area: {
+                  enabled: true,
+                  metric: true,
+                  imperial: false,
+                },
+              }
+            : false,
         },
         edit: {
           featureGroup: drawnItems.value,
@@ -166,15 +240,67 @@ export default defineComponent({
         drawnItems.value.addLayer(layer);
 
         // 如果是测量功能，添加测量结果
-        if (props.enableMeasure) {
+        if (
+          props.enableMeasure ||
+          event.layerType === "circle" ||
+          event.layerType === "rectangle"
+        ) {
+          let measurementText = "";
           if (event.layerType === "polyline") {
             const distance = calculateDistance(layer);
-            layer.bindPopup(`距离: ${distance.toFixed(2)} 米`);
-          } else if (event.layerType === "polygon") {
-            const area = calculateArea(layer);
-            layer.bindPopup(`面积: ${area.toFixed(2)} 平方米`);
+            measurementText = `距离: ${distance.toFixed(2)} 米`;
+          } else if (
+            event.layerType === "polygon" ||
+            event.layerType === "rectangle"
+          ) {
+            const area = calculateArea(layer, event.layerType);
+            measurementText = `面积: ${area.toFixed(2)} 平方米`;
+          } else if (event.layerType === "circle") {
+            const area = calculateArea(layer, event.layerType);
+            measurementText = `面积: ${area.toFixed(2)} 平方米`;
+          }
+          if (measurementText) {
+            layer.bindPopup(measurementText).openPopup();
           }
         }
+      });
+
+      // 监听删除事件
+      drawnItems.value.on("layerremove", (event) => {
+        const layer = event.layer;
+
+        // 先关闭弹出框，再移除
+        if (layer._popup) {
+          layer._popup.close();
+          layer._popup.remove();
+          layer._popup = null;
+        }
+
+        // 确保图层从地图上完全移除
+        if (map.value.hasLayer(layer)) {
+          map.value.removeLayer(layer);
+        }
+
+        // 清理图层上的所有事件监听器
+        layer.off();
+      });
+
+      // 监听地图缩放开始事件，暂时关闭所有弹出框
+      map.value.on("zoomstart", () => {
+        drawnItems.value.eachLayer((layer) => {
+          if (layer._popup && layer._popup.isOpen()) {
+            layer._popup.close();
+          }
+        });
+      });
+
+      // 监听地图缩放结束事件，重新打开弹出框
+      map.value.on("zoomend", () => {
+        drawnItems.value.eachLayer((layer) => {
+          if (layer._popup) {
+            layer._popup.update();
+          }
+        });
       });
     };
 
@@ -191,11 +317,62 @@ export default defineComponent({
     };
 
     /**
-     * 计算面积
+     * 计算多边形面积
+     * @param {L.Layer} layer - Leaflet图层对象
+     * @returns {number} 面积（平方米）
      */
-    const calculateArea = (layer) => {
+    const calculatePolygonArea = (layer) => {
       const latlngs = layer.getLatLngs()[0];
       return L.GeometryUtil.geodesicArea(latlngs);
+    };
+
+    /**
+     * 计算圆形面积
+     * @param {L.Circle} circle - Leaflet圆形对象
+     * @returns {number} 面积（平方米）
+     */
+    const calculateCircleArea = (circle) => {
+      const radius = circle.getRadius(); // 获取半径（米）
+      return Math.PI * radius * radius;
+    };
+
+    /**
+     * 计算矩形面积
+     * @param {L.Rectangle} rectangle - Leaflet矩形对象
+     * @returns {number} 面积（平方米）
+     */
+    const calculateRectangleArea = (rectangle) => {
+      const bounds = rectangle.getBounds();
+      const northEast = bounds.getNorthEast();
+      const southWest = bounds.getSouthWest();
+
+      // 使用GeometryUtil计算矩形四个顶点构成的多边形面积
+      return L.GeometryUtil.geodesicArea([
+        northEast,
+        L.latLng(northEast.lat, southWest.lng),
+        southWest,
+        L.latLng(southWest.lat, northEast.lng),
+      ]);
+    };
+
+    /**
+     * 根据图形类型计算面积
+     * @param {L.Layer} layer - Leaflet图层对象
+     * @param {string} layerType - 图层类型
+     * @returns {number} 面积（平方米）
+     */
+    const calculateArea = (layer, layerType) => {
+      switch (layerType) {
+        case "polygon":
+          return calculatePolygonArea(layer);
+        case "circle":
+          return calculateCircleArea(layer);
+        case "rectangle":
+          return calculateRectangleArea(layer);
+        default:
+          console.warn("不支持的图形类型:", layerType);
+          return 0;
+      }
     };
 
     /**

@@ -99,6 +99,61 @@ export default defineComponent({
           ).href,
         },
       },
+      starry: {
+        name: "星空",
+        config: {
+          positiveX: "http://mars3d.cn/img/skybox/1/tycho2t3_80_px.jpg",
+          negativeX: "http://mars3d.cn/img/skybox/1/tycho2t3_80_mx.jpg",
+          positiveY: "http://mars3d.cn/img/skybox/1/tycho2t3_80_py.jpg",
+          negativeY: "http://mars3d.cn/img/skybox/1/tycho2t3_80_my.jpg",
+          positiveZ: "http://mars3d.cn/img/skybox/1/tycho2t3_80_pz.jpg",
+          negativeZ: "http://mars3d.cn/img/skybox/1/tycho2t3_80_mz.jpg",
+        },
+      },
+      sunset: {
+        name: "黄昏",
+        config: {
+          positiveX: "http://mars3d.cn/img/skybox_near/wanxia/SunSetRight.png",
+          negativeX: "http://mars3d.cn/img/skybox_near/wanxia/SunSetLeft.png",
+          positiveY: "http://mars3d.cn/img/skybox_near/wanxia/SunSetFront.png",
+          negativeY: "http://mars3d.cn/img/skybox_near/wanxia/SunSetBack.png",
+          positiveZ: "http://mars3d.cn/img/skybox_near/wanxia/SunSetUp.png",
+          negativeZ: "http://mars3d.cn/img/skybox_near/wanxia/SunSetDown.png",
+        },
+      },
+      bluesky: {
+        name: "蓝天",
+        config: {
+          positiveX: "http://mars3d.cn/img/skybox/6/tycho2t3_80_px.jpg",
+          negativeX: "http://mars3d.cn/img/skybox/6/tycho2t3_80_mx.jpg",
+          positiveY: "http://mars3d.cn/img/skybox/6/tycho2t3_80_py.jpg",
+          negativeY: "http://mars3d.cn/img/skybox/6/tycho2t3_80_my.jpg",
+          positiveZ: "http://mars3d.cn/img/skybox/6/tycho2t3_80_pz.jpg",
+          negativeZ: "http://mars3d.cn/img/skybox/6/tycho2t3_80_mz.jpg",
+        },
+      },
+      night: {
+        name: "夜晚",
+        config: {
+          positiveX: "http://mars3d.cn/img/skybox/2/tycho2t3_80_px.jpg",
+          negativeX: "http://mars3d.cn/img/skybox/2/tycho2t3_80_mx.jpg",
+          positiveY: "http://mars3d.cn/img/skybox/2/tycho2t3_80_py.jpg",
+          negativeY: "http://mars3d.cn/img/skybox/2/tycho2t3_80_my.jpg",
+          positiveZ: "http://mars3d.cn/img/skybox/2/tycho2t3_80_pz.jpg",
+          negativeZ: "http://mars3d.cn/img/skybox/2/tycho2t3_80_mz.jpg",
+        },
+      },
+      sunshine: {
+        name: "晴天",
+        config: {
+          positiveX: new URL("@/assets/img/sky-box/sunshine/px.png", import.meta.url).href,
+          negativeX: new URL("@/assets/img/sky-box/sunshine/nx.png", import.meta.url).href,
+          positiveY: new URL("@/assets/img/sky-box/sunshine/py.png", import.meta.url).href,
+          negativeY: new URL("@/assets/img/sky-box/sunshine/ny.png", import.meta.url).href,
+          positiveZ: new URL("@/assets/img/sky-box/sunshine/pz.png", import.meta.url).href,
+          negativeZ: new URL("@/assets/img/sky-box/sunshine/nz.png", import.meta.url).href,
+        },
+      },
     };
 
     /**

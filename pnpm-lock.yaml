@@ -26,6 +26,9 @@ importers:
       leaflet-fullscreen:
         specifier: ^1.0.2
         version: 1.0.2
+      leaflet-geometryutil:
+        specifier: ^0.10.3
+        version: 0.10.3
       leaflet.markercluster:
         specifier: ^1.5.3
         version: 1.5.3(leaflet@1.9.4)
@@ -963,6 +966,9 @@ packages:
 
   leaflet-fullscreen@1.0.2:
     resolution: {integrity: sha512-1Yxm8RZg6KlKX25+hbP2H/wnOAphH7hFcvuADJFb4QZTN7uOSN9Hsci5EZpow8vtNej9OGzu59Jxmn+0qKOO9Q==}
+
+  leaflet-geometryutil@0.10.3:
+    resolution: {integrity: sha512-Qeas+KsnenE0Km/ydt8km3AqFe7kJhVwuLdbCYM2xe2epsxv5UFEaVJiagvP9fnxS8QvBNbm7DJlDA0tkKo9VA==}
 
   leaflet.markercluster@1.5.3:
     resolution: {integrity: sha512-vPTw/Bndq7eQHjLBVlWpnGeLa3t+3zGiuM7fJwCkiMFq+nmRuG3RI3f7f4N4TDX7T4NpbAXpR2+NTRSEGfCSeA==}
@@ -2316,6 +2322,10 @@ snapshots:
   leaflet-draw@1.0.4: {}
 
   leaflet-fullscreen@1.0.2: {}
+
+  leaflet-geometryutil@0.10.3:
+    dependencies:
+      leaflet: 1.9.4
 
   leaflet.markercluster@1.5.3(leaflet@1.9.4):
     dependencies:
