@@ -1,20 +1,40 @@
+/**
+ * @file Leaflet.jsx
+ * @description Leaflet地图组件，基于Leaflet库实现的Vue3地图组件
+ * @module components/Leaflet
+ */
+
+// Vue相关依赖
 import { defineComponent, onMounted, ref } from "vue";
+
+// Leaflet核心库及工具
 import L from "leaflet";
-import "leaflet-geometryutil";
+import "leaflet-geometryutil"; // 引入几何计算工具
 
-import "leaflet/dist/leaflet.css";
-import "leaflet-draw/dist/leaflet.draw.css";
-import "leaflet-fullscreen/dist/leaflet.fullscreen.css";
+// 样式文件
+import "leaflet/dist/leaflet.css"; // Leaflet核心样式
+import "leaflet-draw/dist/leaflet.draw.css"; // 绘制工具样式
+import "leaflet-fullscreen/dist/leaflet.fullscreen.css"; // 全屏控件样式
 
-import "leaflet.markercluster/dist/MarkerCluster.css";
-import "leaflet.markercluster/dist/MarkerCluster.Default.css";
-import "leaflet.markercluster";
-import "leaflet-draw";
-import "leaflet-fullscreen";
+// 点位聚合相关
+import "leaflet.markercluster/dist/MarkerCluster.css"; // 聚合样式
+import "leaflet.markercluster/dist/MarkerCluster.Default.css"; // 聚合默认主题
+import "leaflet.markercluster"; // 聚合功能
+
+// 扩展插件
+import "leaflet-draw"; // 绘制工具
+import "leaflet-fullscreen"; // 全屏控件
 
 export default defineComponent({
   name: "LeafletMap",
   props: {
+    /**
+     * 地图缩放等级
+     * @description 控制地图的缩放级别，值越大显示的细节越多
+     * @type {number}
+     * @default 13
+     * @example mapLevel={15}
+     */
     /**
      * 地图缩放等级
      * @description 控制地图的缩放级别，值越大显示的细节越多
@@ -34,11 +54,24 @@ export default defineComponent({
      * @default [30.355764, 120.024029]
      * @example centerPoint={[39.9042, 116.4074]}
      */
+    /**
+     * 地图中心点坐标
+     * @description 设置地图初始化时的中心点位置，格式为[纬度, 经度]
+     * @type {Array<number>}
+     * @default [30.355764, 120.024029]
+     * @example centerPoint={[39.9042, 116.4074]}
+     */
     centerPoint: {
       type: Array,
       required: true,
       default: [30.355764, 120.024029],
     },
+    /**
+     * 是否启用点位聚合
+     * @description 当地图上有大量标记点时，是否将它们聚合显示
+     * @type {boolean}
+     * @default true
+     */
     /**
      * 是否启用点位聚合
      * @description 当地图上有大量标记点时，是否将它们聚合显示
@@ -55,10 +88,22 @@ export default defineComponent({
      * @type {number}
      * @default 80
      */
+    /**
+     * 聚合半径
+     * @description 点位聚合的范围半径（像素），值越大聚合范围越大
+     * @type {number}
+     * @default 80
+     */
     clusterRadius: {
       type: Number,
       default: 80,
     },
+    /**
+     * 是否显示鼠标位置坐标
+     * @description 在地图上移动鼠标时，是否显示当前位置的经纬度坐标
+     * @type {boolean}
+     * @default true
+     */
     /**
      * 是否显示鼠标位置坐标
      * @description 在地图上移动鼠标时，是否显示当前位置的经纬度坐标
@@ -75,10 +120,22 @@ export default defineComponent({
      * @type {string}
      * @default "standard"
      */
+    /**
+     * 底图类型
+     * @description 选择地图底图样式，可选值：standard（标准）、satellite（卫星）、terrain（地形）、traffic（交通）
+     * @type {string}
+     * @default "standard"
+     */
     baseMapType: {
       type: String,
       default: "standard",
     },
+    /**
+     * 是否启用绘制工具
+     * @description 是否显示绘制工具栏，支持绘制点、线、面等要素
+     * @type {boolean}
+     * @default true
+     */
     /**
      * 是否启用绘制工具
      * @description 是否显示绘制工具栏，支持绘制点、线、面等要素
@@ -95,18 +152,35 @@ export default defineComponent({
      * @type {boolean}
      * @default true
      */
+    /**
+     * 是否启用测量工具
+     * @description 是否启用距离和面积测量功能
+     * @type {boolean}
+     * @default true
+     */
     enableMeasure: {
       type: Boolean,
       default: true,
     },
   },
+  /**
+   * 组件逻辑设置
+   * @param {Object} props - 组件属性
+   * @param {Object} context - 上下文对象，包含expose和emit方法
+   * @returns {Object} 返回组件的渲染函数和响应式数据
+   */
   setup(props, { expose, emit }) {
-    const map = ref(null);
-    const mousePosition = ref(null);
-    const drawnItems = ref(null);
-    const drawControl = ref(null);
+    // 响应式状态管理
+    const map = ref(null); // Leaflet地图实例
+    const mousePosition = ref(null); // 鼠标位置坐标
+    const drawnItems = ref(null); // 绘制的图形图层组
+    const drawControl = ref(null); // 绘制控件实例
 
-    // 底图配置
+    /**
+     * 底图配置对象
+     * @description 定义不同类型底图的URL和配置选项
+     * @type {Object}
+     */
     const baseMaps = {
       standard: {
         url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -142,6 +216,9 @@ export default defineComponent({
 
     /**
      * 初始化绘制工具
+     * @description 根据props配置初始化地图的绘制和测量工具
+     * @function
+     * @returns {void}
      */
     const initDrawTools = () => {
       console.log("Initializing draw tools, enableDraw:", props.enableDraw);
@@ -424,6 +501,13 @@ export default defineComponent({
     /**
      * 更新鼠标位置
      */
+    /**
+     * 更新鼠标位置坐标
+     * @description 根据鼠标移动事件更新当前鼠标所在位置的经纬度坐标
+     * @function
+     * @param {L.MouseEvent} e - Leaflet鼠标事件对象
+     * @returns {void}
+     */
     const updateMousePosition = (e) => {
       if (props.showMousePosition) {
         mousePosition.value = `${e.latlng.lat.toFixed(
@@ -543,6 +627,12 @@ export default defineComponent({
     };
 
     // 在initMap函数中添加初始化搜索控件
+    /**
+     * 初始化地图实例
+     * @description 创建Leaflet地图实例，设置初始视图和底图
+     * @function
+     * @returns {void}
+     */
     const initMap = () => {
       // 创建地图实例
       map.value = L.map("map", {
@@ -603,6 +693,11 @@ export default defineComponent({
       getDrawnItems: () => drawnItems.value,
     });
 
+    /**
+     * 组件挂载生命周期钩子
+     * @description 在组件挂载完成后初始化地图和相关工具
+     * @lifecycle
+     */
     onMounted(() => {
       initMap();
     });
