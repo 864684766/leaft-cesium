@@ -203,7 +203,7 @@ export default defineComponent({
               })
             : undefined, // 根据配置决定是否启用地形
           baseLayerPicker: true, // 显示图层选择器
-          geocoder: true, // 显示地理编码器
+          geocoder: true, // 显示地理编码器，默认使用Bing Maps地理编码服务，允许用户通过地名、地址或坐标进行位置搜索
           homeButton: true, // 显示主页按钮
           sceneModePicker: true, // 显示场景模式选择器
           navigationHelpButton: true, // 显示帮助按钮
